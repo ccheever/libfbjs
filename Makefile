@@ -63,6 +63,9 @@ libfbjs.a: parser.yacc.o parser.lex.o parser.o node.o dmg_fp_dtoa.o dmg_fp_g_fmt
 libfbjs.so: libfbjs.a
 	$(CC) -fPIC -shared $^ -o $@
 
+jspryme: jspryme.cpp libfbjs.a
+	$(CXX) -ggdb -Wall $^ -o $@
+
 
 clean:
 	$(RM) -f \
