@@ -192,6 +192,8 @@ FBJSBEGIN(IDENTIFIER);
   "else"  return parsertok(t_ELSE);
   "for"  return parsertok(t_FOR);
   "function" return parsertok(t_FUNCTION);
+  "fun" return parsertok(t_FUNCTION);
+  "tfun" return parsertok(t_TFUNCTION);
   "if"  return parsertok(t_IF);
   "new"  return parsertok(t_NEW);
   "return"  return parsertok(t_RETURN);

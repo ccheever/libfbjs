@@ -71,6 +71,9 @@
 %token t_FUNCTION t_IF t_IN t_INSTANCEOF t_RETURN t_SWITCH t_THIS t_THROW t_TRY
 %token t_VAR t_WHILE t_WITH t_CONST t_NULL t_FALSE t_TRUE
 
+// Special qjs tokens [QJS]
+%token t_TFUNCTION
+
 // Special if \ else associativity
 %nonassoc p_IF
 %nonassoc t_ELSE
@@ -262,6 +265,11 @@ object_literal:
       $$ = new NodeObjectLiteral(yylineno);
     }
 |   t_LCURLY property_name_and_value_list t_VIRTUAL_SEMICOLON t_RCURLY { /* note the t_VIRTUAL_SEMICOLON hack */
+      $$ = $2;
+    }
+
+// qjs specific form that allows trailing commas [QJS]
+|   t_LCURLY property_name_and_value_list t_COMMA t_VIRTUAL_SEMICOLON t_RCURLY {
       $$ = $2;
     }
 ;
@@ -1109,6 +1117,28 @@ function_expression:
     }
 |   t_FUNCTION t_LPAREN t_RPAREN t_LCURLY function_body t_RCURLY {
       $$ = (new NodeFunctionExpression($5->lineno()))->appendChild(NULL)->appendChild(new NodeArgList(yylineno))->appendChild($5);
+    }
+
+// qjs special forms for this.fnbind(function () ... ) [QJS]
+|   t_TFUNCTION identifier t_LPAREN formal_parameter_list t_RPAREN t_LCURLY function_body t_RCURLY {
+      $$ = (new NodeFunctionCall(yylineno))->appendChild((new NodeStaticMemberExpression(yylineno))->appendChild(new NodeThis(yylineno))->appendChild(new NodeIdentifier(std::string("fnbind"), yylineno)))->appendChild((new NodeParenthetical(yylineno))->appendChild(
+            (new NodeFunctionExpression($2->lineno()))->appendChild($2)->appendChild($4)->appendChild($7)
+        ));
+    }
+|   t_TFUNCTION identifier t_LPAREN t_RPAREN t_LCURLY function_body t_RCURLY {
+      $$ = (new NodeFunctionCall(yylineno))->appendChild((new NodeStaticMemberExpression(yylineno))->appendChild(new NodeThis(yylineno))->appendChild(new NodeIdentifier(std::string("fnbind"), yylineno)))->appendChild((new NodeParenthetical(yylineno))->appendChild(
+            (new NodeFunctionExpression($2->lineno()))->appendChild($2)->appendChild(new NodeArgList(yylineno))->appendChild($6)
+        ));
+    }
+|   t_TFUNCTION t_LPAREN formal_parameter_list t_RPAREN t_LCURLY function_body t_RCURLY {
+      $$ = (new NodeFunctionCall(yylineno))->appendChild((new NodeStaticMemberExpression(yylineno))->appendChild(new NodeThis(yylineno))->appendChild(new NodeIdentifier(std::string("fnbind"), yylineno)))->appendChild((new NodeParenthetical(yylineno))->appendChild(
+            (new NodeFunctionExpression($3->lineno()))->appendChild(NULL)->appendChild($3)->appendChild($6)
+        ));
+    }
+|   t_TFUNCTION t_LPAREN t_RPAREN t_LCURLY function_body t_RCURLY {
+      $$ = (new NodeFunctionCall(yylineno))->appendChild((new NodeStaticMemberExpression(yylineno))->appendChild(new NodeThis(yylineno))->appendChild(new NodeIdentifier(std::string("fnbind"), yylineno)))->appendChild((new NodeParenthetical(yylineno))->appendChild(
+            (new NodeFunctionExpression($5->lineno()))->appendChild(NULL)->appendChild(new NodeArgList(yylineno))->appendChild($5)
+        ));
     }
 ;
 
